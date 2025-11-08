@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+    id 'org.openapi.generator' version '7.7.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.5.6"
+    }
+}
+
+dependencies {
+    api 'io.swagger.core.v3:swagger-annotations:2.2.38'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'jakarta.validation:jakarta.validation-api'
+    implementation 'jakarta.annotation:jakarta.annotation-api'
+}
+
+tasks.register('generateSpringApi', org.openapitools.generator.gradle.plugin.tasks.GenerateTask.class) {
+    generatorName = 'spring'
+    inputSpec = "$projectDir/src/main/resources/satisfactory-planner-api-spec.yaml"
+    outputDir = "$buildDir/generated/openapi-spring"
+    apiPackage = 'com.example.satisfactoryplanner.api'
+    modelPackage = 'com.example.satisfactoryplanner.model'
+    configOptions = [
+            useSpringBoot3  : 'true',
+            useJakartaEe    : 'true',
+            interfaceOnly   : 'true',
+            delegatePattern : 'false',
+            openApiNullable : 'false',
+            skipDefaultInterface: 'true'
+    ]
+}
+
+// Task to generate the Angular 20 client
+tasks.register('generateAngularClient', org.openapitools.generator.gradle.plugin.tasks.GenerateTask.class) {
+    generatorName = 'typescript-angular'
+    inputSpec = "$projectDir/src/main/resources/satisfactory-planner-api-spec.yaml"
+    outputDir = "$rootDir/build/generated/angular-client"
+    configOptions = [
+            ngVersion      : '20.0',
+            npmName        : 'satisfactory-planner-api-client',
+            npmVersion     : '1.0.0',
+            stringEnums    : 'true'
+    ]
+}
+
+// 5. INTEGRATION
+// This section connects the generated Spring code to the project's build process.
+sourceSets.main.java.srcDir "$buildDir/generated/openapi-spring/src/main/java"
+compileJava.dependsOn tasks.named("generateSpringApi")

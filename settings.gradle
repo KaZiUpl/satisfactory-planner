@@ -1,0 +1,4 @@
+rootProject.name = 'satisfactory-planner'
+
+include "satisfactory-planner-api"
+include "satisfactory-planner-backend"

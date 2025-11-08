@@ -1,0 +1,524 @@
+openapi: 3.0.3
+info:
+  title: Factory Planner API
+  description: API for managing production plans for the game Satisfactory.
+  version: 0.9.0
+servers:
+  - url: https://api.factoryplanner.example.com/v1
+    description: Production Server
+
+tags:
+  - name: Game Data
+    description: Endpoints for retrieving static game data (items, recipes, etc.).
+  - name: Factory Management
+    description: Endpoints for managing a user's saved factories (plans).
+  - name: Analysis & Summary
+    description: Endpoints for analyzing and summarizing existing factory plans.
+
+paths:
+  /items:
+    get:
+      tags: [Game Data]
+      summary: Get all items
+      description: Retrieves a list of all available items in the game.
+      operationId: getAllItems
+      responses:
+        '200':
+          description: A list of all items.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Item' } }
+  /recipes:
+    get:
+      tags: [Game Data]
+      summary: Get all recipes
+      description: >
+        Retrieves a list of all available crafting recipes
+        and resource extraction "pseudo-recipes".
+      operationId: getAllRecipes
+      responses:
+        '200':
+          description: A list of all recipes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Recipe' } }
+  /buildings:
+    get:
+      tags: [Game Data]
+      summary: Get all buildings
+      description: >
+        Retrieves a list of all available buildings
+        (production, miners, generators, etc.).
+      operationId: getAllBuildings
+      responses:
+        '200':
+          description: A list of all buildings.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Building' } }
+
+  /factories:
+    get:
+      tags: [Factory Management]
+      summary: Get list of saved factories
+      description: Retrieves a list of all factories (plans) saved by the user.
+      operationId: getFactories
+      responses:
+        '200':
+          description: A list of the user's factories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Factory' }
+    post:
+      tags: [Factory Management]
+      summary: Create a new factory
+      description: Creates a new, empty factory plan.
+      operationId: createFactory
+      requestBody:
+        description: Data for the new factory.
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FactoryInput' }
+      responses:
+        '201':
+          description: Factory created successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Factory' }
+
+  /factories/{factoryId}:
+    parameters:
+      - name: factoryId
+        in: path
+        required: true
+        description: The ID of the factory to retrieve.
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Factory Management]
+      summary: Get a single factory
+      description: Retrieves the full details of a specific factory (plan) by its ID.
+      operationId: getFactoryById
+      responses:
+        '200':
+          description: Factory details.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Factory' }
+        '404':
+          description: Factory not found.
+    put:
+      tags: [Factory Management]
+      summary: Update a factory (save plan)
+      description: >
+        Updates the entire structure of a factory, including its name, description,
+        and the full list of outposts and production nodes.
+        This is the main "Save" endpoint.
+      operationId: updateFactory
+      requestBody:
+        description: The new data for the factory.
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FactoryInput' }
+      responses:
+        '200':
+          description: Factory updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Factory' }
+        '404':
+          description: Factory not found.
+    delete:
+      tags: [Factory Management]
+      summary: Delete a factory
+      description: Permanently deletes a user's factory (plan).
+      operationId: deleteFactory
+      responses:
+        '204':
+          description: Factory deleted successfully (no content).
+        '404':
+          description: Factory not found.
+
+  /factories/{factoryId}/summary:
+    parameters:
+      - name: factoryId
+        in: path
+        required: true
+        description: The ID of the factory to analyze.
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Analysis & Summary]
+      summary: Get factory production summary
+      description: >
+        Analyzes the saved factory structure and returns a calculated
+        net production/consumption summary for the entire factory
+        and for each outpost individually.
+      operationId: getFactorySummary
+      responses:
+        '200':
+          description: The factory production summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactorySummary'
+        '404':
+          description: Factory not found.
+
+components:
+  schemas:
+    NetItemRate:
+      type: object
+      description: >
+        Represents the calculated net rate (production - consumption)
+        for a single item, in items per minute.
+      properties:
+        itemId:
+          type: string
+          description: The ID of the item (from /items).
+          example: Desc_IronPlate_C
+        netRate:
+          type: number
+          format: float
+          description: >
+            Calculated net rate (items/min).
+            A positive number means overproduction (e.g., 10.0).
+            A negative number means a deficit/input required (e.g., -5.0).
+            Zero means production = consumption.
+          example: 10.0
+      required: [itemId, netRate]
+
+    ProductionSummary:
+      type: object
+      description: >
+        Represents a summary object for a given scope
+        (an entire factory or a single outpost).
+      properties:
+        netItemRates:
+          type: array
+          description: >
+            A list of all items with a non-zero net rate in this scope.
+            Items with netRate = 0 are omitted.
+          items:
+            $ref: '#/components/schemas/NetItemRate'
+        netPowerConsumption:
+          type: number
+          format: float
+          description: >
+            Calculated net power consumption (MW).
+            A positive number means consumption (deficit), e.g., 50.0.
+            A negative number means power overproduction (surplus), e.g., -150.0.
+          example: 50.0
+        totalMachineCount:
+          type: number
+          format: float
+          description: The total (equivalent) number of machines in this scope.
+          example: 12.5
+      required: [netItemRates, netPowerConsumption, totalMachineCount]
+
+    FactorySummary:
+      type: object
+      description: A full analytical summary for an entire factory.
+      properties:
+        factoryId:
+          type: string
+          format: uuid
+        factoryName:
+          type: string
+        totalSummary:
+          description: A summary for the entire factory.
+          $ref: '#/components/schemas/ProductionSummary'
+        outpostSummaries:
+          description: A list of summaries for each outpost individually.
+          type: array
+          items:
+            type: object
+            properties:
+              outpostId:
+                type: string
+                format: uuid
+              outpostName:
+                type: string
+              summary:
+                $ref: '#/components/schemas/ProductionSummary'
+            required: [outpostId, outpostName, summary]
+      required: [factoryId, factoryName, totalSummary, outpostSummaries]
+
+    Factory:
+      type: object
+      description: Represents a saved factory plan created by the user.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the factory (plan).
+          readOnly: true
+        name:
+          type: string
+          description: User-defined name for the factory.
+          example: My HMF Factory
+        description:
+          type: string
+          description: Optional description for the factory.
+          example: A plan to produce 10 Heavy Modular Frames per minute.
+          nullable: true
+        outposts:
+          type: array
+          description: A list of outposts (production lines) within this factory.
+          items:
+            $ref: '#/components/schemas/Outpost'
+          default: []
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the plan was created (server-set).
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: The timestamp of the last modification (server-set).
+          readOnly: true
+      required: [id, name, outposts, createdAt, updatedAt]
+
+    Outpost:
+      type: object
+      description: Represents a single outpost or production line within a factory.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the outpost (server-set or client-provided for updates).
+        name:
+          type: string
+          example: Iron Plate Production Line
+        description:
+          type: string
+          nullable: true
+        productions:
+          type: array
+          description: A list of production nodes within this outpost.
+          items:
+            $ref: '#/components/schemas/ProductionNode'
+          default: []
+      required: [id, name, productions]
+
+    ProductionNode:
+      type: object
+      description: >
+        A single production node (a group of machines).
+        Defines which recipe is used, in which building, and how many.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the node (server-set or client-provided for updates).
+        recipeId:
+          type: string
+          description: The ID of the recipe (from /recipes) being used.
+          example: Recipe_IronPlate_C
+        buildingId:
+          type: string
+          description: The ID of the building (from /buildings) running the recipe.
+          example: Desc_Constructor_C
+        machineCount:
+          type: number
+          format: float
+          description: >
+            Number of machines. Can be fractional (e.g., 0.5 for a machine
+            at 50% clock speed, if clockSpeed = 1.0).
+          example: 4.0
+        clockSpeed:
+          type: number
+          format: float
+          description: The clock speed for this group of machines (1.0 = 100%, 2.5 = 250%).
+          default: 1.0
+      required: [id, recipeId, buildingId, machineCount]
+
+    FactoryInput:
+      type: object
+      description: >
+        Schema used for creating (POST) or updating (PUT) a factory.
+        Does not include server-generated fields (like IDs or timestamps).
+        When updating (PUT), the 'id' for 'outposts' and 'productions'
+        must be preserved so the server can match existing records.
+      properties:
+        name:
+          type: string
+          example: My HMF Factory
+        description:
+          type: string
+          example: A plan to produce 10 Heavy Modular Frames per minute.
+          nullable: true
+        outposts:
+          type: array
+          description: The full list of outposts and their production nodes.
+          items:
+            $ref: '#/components/schemas/Outpost'
+          default: []
+      required: [name]
+
+    Item:
+      type: object
+      description: Represents a single in-game item (resource, part, equipment, etc.).
+      properties:
+        id:
+          type: string
+          example: Desc_IronPlate_C
+        name:
+          type: string
+          example: Iron Plate
+        description:
+          type: string
+          example: "Iron Plates are a basic component used in many recipes."
+        stackSize:
+          type: integer
+          example: 100
+        sinkValue:
+          type: integer
+          example: 2
+        energyValue:
+          type: number
+          format: float
+          description: Energy value in Megajoules (MJ) when used as fuel. Null if not a fuel.
+          example: 300
+          nullable: true
+        radioactive:
+          type: boolean
+          example: false
+      required: [id, name, stackSize, sinkValue]
+
+    RecipeItemAmount:
+      type: object
+      description: >
+        A helper schema linking an Item ID to a specific quantity
+        used in a single craft cycle of a recipe.
+      properties:
+        itemId:
+          type: string
+          description: The ID of the item being consumed or produced.
+          example: Desc_IronOre_C
+        amount:
+          type: integer
+          description: The number of items for one craft cycle.
+          example: 3
+      required: [itemId, amount]
+
+    ItemRate:
+      type: object
+      description: >
+        A helper schema linking an Item ID to a specific rate (per minute).
+        Used primarily for generator fuel consumption.
+      properties:
+        itemId:
+          type: string
+          description: The ID of the item being consumed.
+          example: Desc_Coal_C
+        rate:
+          type: number
+          format: float
+          description: The number of items consumed per minute.
+          example: 15.0
+      required: [itemId, rate]
+
+    Recipe:
+      type: object
+      description: >
+        Defines a single crafting recipe.
+        Note: Resource extraction (Mining) is handled as a "pseudo-recipe"
+        with no inputs, a craftTime (e.g., 60s), and outputs (e.g., 120).
+      properties:
+        id:
+          type: string
+          example: Recipe_IronPlate_C
+        name:
+          type: string
+          example: Iron Plate
+        craftTime:
+          type: number
+          format: float
+          description: The time in seconds to complete one craft cycle at 100% clock speed.
+          example: 4.0
+        inputs:
+          type: array
+          description: A list of items and amounts required to start one craft cycle.
+          items:
+            $ref: '#/components/schemas/RecipeItemAmount'
+        outputs:
+          type: array
+          description: A list of items and amounts produced in one craft cycle.
+          items:
+            $ref: '#/components/schemas/RecipeItemAmount'
+        producedIn:
+          type: array
+          description: List of building IDs (ClassNames) that can craft this recipe.
+          items:
+            type: string
+          example: ["Desc_Constructor_C"]
+        isAlternate:
+          type: boolean
+          description: True if this is an alternate recipe unlocked via Hard Drives.
+          default: false
+      required: [id, name, craftTime, inputs, outputs, producedIn]
+
+    Building:
+      type: object
+      description: Represents a single in-game building (machine, generator, etc.).
+      properties:
+        id:
+          type: string
+          description: Unique machine-readable identifier (ClassName).
+          example: Desc_Constructor_C
+        name:
+          type: string
+          description: Human-readable display name.
+          example: Constructor
+        description:
+          type: string
+          description: In-game description.
+        category:
+          type: string
+          description: Helps organize buildings in the UI.
+          example: "Production"
+          enum: [Production, Mining, Power, Logistics, Other]
+        powerConsumption:
+          type: number
+          format: float
+          description: >
+            Base power consumption in Megawatts (MW) at 100% clock speed.
+            Null for generators that only produce power.
+          example: 4
+          nullable: true
+        powerConsumptionExponent:
+          type: number
+          format: float
+          description: >
+            The exponent used for calculating power with clock speed changes.
+            Formula: ActualPower = BasePower * (ClockSpeed ^ Exponent)
+          example: 1.6
+        powerProduction:
+          type: number
+          format: float
+          description: >
+            Power produced in Megawatts (MW).
+            Null for buildings that only consume power.
+          example: 75
+          nullable: true
+        canSetClockSpeed:
+          type: boolean
+          description: True if the building supports overclocking/underclocking.
+          default: true
+        canSetRecipe:
+          type: boolean
+          description: True if a recipe must be selected for this building to function.
+          example: true
+        fuelInputs:
+          type: array
+          description: >
+            A list of items and their consumption rates (per minute)
+            required for this building to function (e.g., for generators).
+          items:
+            $ref: '#/components/schemas/ItemRate'
+          nullable: true
+      required: [id, name, category]

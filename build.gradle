@@ -1,0 +1,42 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    id 'org.springframework.boot' version '3.5.6' apply false
+    id 'io.spring.dependency-management' version '1.1.7' apply false
+    id 'org.openapi.generator' version '7.7.0' apply false
+}
+
+tasks.register('openApiGenerateServer', GenerateTask.class) {
+    generatorName = 'spring'
+    inputSpec = "$projectDir/satisfactory-planner-api/src/main/resources/api.yaml"
+    outputDir = "$projectDir/satisfactory-planner-api/build/generated/openapi"
+    apiPackage = 'com.example.satisfactoryplanner.api'
+    modelPackage = 'com.example.satisfactoryplanner.model'
+    configOptions = [
+            useSpringBoot3  : 'true',
+            useJakartaEe    : 'true',
+            interfaceOnly   : 'true',
+            delegatePattern : 'true',
+            openApiNullable : 'false'
+    ]
+}
+
+tasks.register('openApiGenerateAngularClient', GenerateTask.class) {
+    generatorName = 'typescript-angular'
+    inputSpec = "$projectDir/satisfactory-planner-api/src/main/resources/api.yaml"
+    outputDir = "$buildDir/generated/angular-client"
+    configOptions = [
+            ngVersion      : '20.0',
+            npmName        : 'satisfactory-planner-api-client',
+            npmVersion     : '1.0.0',
+            stringEnums    : 'true',
+            supportsES6    : 'true',
+            withInterfaces : 'true'
+    ]
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}
