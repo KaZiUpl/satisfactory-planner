@@ -1,27 +1,25 @@
 package kaziupl.satisfactoryplanner.controllers;
 
 import com.example.satisfactoryplanner.api.ItemsApi;
-import com.example.satisfactoryplanner.model.Item;
+import com.example.satisfactoryplanner.model.ItemPage;
 import kaziupl.satisfactoryplanner.services.ItemService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.awt.print.Pageable;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 @RestController()
 @RequestMapping("items")
+@RequiredArgsConstructor
 public class ItemController implements ItemsApi {
-
-    @Autowired
-    private ItemService itemService;
+    private final ItemService itemService;
 
     @GetMapping(path = "")
     @Override
-    public ResponseEntity<List<Item>> getAllItems() {
-        return ResponseEntity.ok(this.itemService.getAllItems());
-    }
-}
+    public ResponseEntity<ItemPage> getAllItems(Integer page, Integer size, String sort, Pageable pageable) {
+        return ResponseEntity.ok(this.itemService.getAllItems(pageable));
+
+
+    }}

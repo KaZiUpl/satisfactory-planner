@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Factory Planner API
   description: API for managing production plans for the game Satisfactory.
-  version: 0.9.0
+  version: 1.2.0
 servers:
   - url: https://api.factoryplanner.example.com/v1
     description: Production Server
@@ -19,43 +19,115 @@ paths:
   /items:
     get:
       tags: [Game Data]
-      summary: Get all items
-      description: Retrieves a list of all available items in the game.
+      summary: Get all items (paginated)
+      description: Retrieves a paginated list of all available items in the game.
       operationId: getAllItems
+      x-spring-paginated: true
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size.
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: "Sort criteria in the format: property,(asc|desc). Default sort is by name,asc."
+          required: false
+          schema:
+            type: string
+            default: "name,asc"
       responses:
         '200':
-          description: A list of all items.
+          description: A paginated list of items.
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/Item' } }
+              schema:
+                $ref: '#/components/schemas/ItemPage'
   /recipes:
     get:
       tags: [Game Data]
-      summary: Get all recipes
+      summary: Get all recipes (paginated)
       description: >
-        Retrieves a list of all available crafting recipes
+        Retrieves a paginated list of all available crafting recipes
         and resource extraction "pseudo-recipes".
       operationId: getAllRecipes
+      x-spring-paginated: true
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size.
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: "Sort criteria in the format: property,(asc|desc). Default sort is by name,asc."
+          required: false
+          schema:
+            type: string
+            default: "name,asc"
       responses:
         '200':
-          description: A list of all recipes.
+          description: A paginated list of recipes.
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/Recipe' } }
+              schema:
+                $ref: '#/components/schemas/RecipePage'
   /buildings:
     get:
       tags: [Game Data]
-      summary: Get all buildings
+      summary: Get all buildings (paginated)
       description: >
-        Retrieves a list of all available buildings
+        Retrieves a paginated list of all available buildings
         (production, miners, generators, etc.).
       operationId: getAllBuildings
+      x-spring-paginated: true
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size.
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: "Sort criteria in the format: property,(asc|desc). Default sort is by name,asc."
+          required: false
+          schema:
+            type: string
+            default: "name,asc"
       responses:
         '200':
-          description: A list of all buildings.
+          description: A paginated list of buildings.
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/Building' } }
+              schema:
+                $ref: '#/components/schemas/BuildingPage'
 
   /factories:
     get:
@@ -169,6 +241,126 @@ paths:
 
 components:
   schemas:
+    ItemPage:
+      type: object
+      description: A paginated list of items.
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        totalPages:
+          type: integer
+          description: Total number of pages.
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements across all pages.
+          example: 95
+        size:
+          type: integer
+          description: The number of elements requested in the page.
+          example: 10
+        number:
+          type: integer
+          description: The current page number (0-indexed).
+          example: 0
+        numberOfElements:
+          type: integer
+          description: The number of elements in the current page.
+          example: 10
+        last:
+          type: boolean
+          description: True if this is the last page.
+        first:
+          type: boolean
+          description: True if this is the first page.
+        empty:
+          type: boolean
+          description: True if the current page has no elements.
+      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+
+    RecipePage:
+      type: object
+      description: A paginated list of recipes.
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipe'
+        totalPages:
+          type: integer
+          description: Total number of pages.
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements across all pages.
+          example: 95
+        size:
+          type: integer
+          description: The number of elements requested in the page.
+          example: 10
+        number:
+          type: integer
+          description: The current page number (0-indexed).
+          example: 0
+        numberOfElements:
+          type: integer
+          description: The number of elements in the current page.
+          example: 10
+        last:
+          type: boolean
+          description: True if this is the last page.
+        first:
+          type: boolean
+          description: True if this is the first page.
+        empty:
+          type: boolean
+          description: True if the current page has no elements.
+      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+
+    BuildingPage:
+      type: object
+      description: A paginated list of buildings.
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Building'
+        totalPages:
+          type: integer
+          description: Total number of pages.
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements across all pages.
+          example: 95
+        size:
+          type: integer
+          description: The number of elements requested in the page.
+          example: 10
+        number:
+          type: integer
+          description: The current page number (0-indexed).
+          example: 0
+        numberOfElements:
+          type: integer
+          description: The number of elements in the current page.
+          example: 10
+        last:
+          type: boolean
+          description: True if this is the last page.
+        first:
+          type: boolean
+          description: True if this is the first page.
+        empty:
+          type: boolean
+          description: True if the current page has no elements.
+      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+
     NetItemRate:
       type: object
       description: >
@@ -375,7 +567,7 @@ components:
         stackSize:
           type: integer
           example: 100
-        sinkValue:
+        sinkPoints:
           type: integer
           example: 2
         energyValue:
@@ -384,9 +576,9 @@ components:
           description: Energy value in Megajoules (MJ) when used as fuel. Null if not a fuel.
           example: 300
           nullable: true
-        radioactive:
-          type: boolean
-          example: false
+        radioactiveDecay:
+          type: float
+          example: 20
       required: [id, name, stackSize, sinkValue]
 
     RecipeItemAmount:
@@ -427,7 +619,7 @@ components:
       description: >
         Defines a single crafting recipe.
         Note: Resource extraction (Mining) is handled as a "pseudo-recipe"
-        with no inputs, a craftTime (e.g., 60s), and outputs (e.g., 120).
+        with no ingredients, a craftTime (e.g., 60s), and product (e.g., 120).
       properties:
         id:
           type: string
@@ -440,12 +632,12 @@ components:
           format: float
           description: The time in seconds to complete one craft cycle at 100% clock speed.
           example: 4.0
-        inputs:
+        ingredients:
           type: array
           description: A list of items and amounts required to start one craft cycle.
           items:
             $ref: '#/components/schemas/RecipeItemAmount'
-        outputs:
+        product:
           type: array
           description: A list of items and amounts produced in one craft cycle.
           items:
@@ -460,7 +652,7 @@ components:
           type: boolean
           description: True if this is an alternate recipe unlocked via Hard Drives.
           default: false
-      required: [id, name, craftTime, inputs, outputs, producedIn]
+      required: [id, name, craftTime, ingredients, product, producedIn]
 
     Building:
       type: object
@@ -507,7 +699,7 @@ components:
           nullable: true
         canSetClockSpeed:
           type: boolean
-          description: True if the building supports overclocking/underclocking.
+          description: True if this is the building supports overclocking/underclocking.
           default: true
         canSetRecipe:
           type: boolean
