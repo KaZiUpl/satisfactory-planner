@@ -31,7 +31,8 @@ tasks.register('generateSpringApi', org.openapitools.generator.gradle.plugin.tas
             interfaceOnly   : 'true',
             delegatePattern : 'false',
             openApiNullable : 'false',
-            skipDefaultInterface: 'true'
+            skipDefaultInterface: 'true',
+            generateCrudApi: 'false',
     ]
 }
 

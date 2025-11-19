@@ -11,13 +11,14 @@ import org.springframework.data.domain.Page;
 
 @Mapper
 public interface RecipeMapper extends BaseMapper<Recipe, RecipeModel> {
-    public RecipeMapper INSTANCE = Mappers.getMapper(RecipeMapper.class);
+    RecipeMapper INSTANCE = Mappers.getMapper(RecipeMapper.class);
 
     Recipe toDto(RecipeModel recipeModel);
     RecipeModel toBase(Recipe recipe);
 
-    public RecipePage pageToItem(Page<Recipe> items);
+    RecipePage pageToRecipePage(Page<Recipe> recipes);
+    RecipePage modelPageToRecipePage(Page<RecipeModel> recipes);
 
-    public RecipeItemAmountModel toBaseRecipeItem(RecipeItemAmount recipeItemAmount);
-    public RecipeItemAmount toDtoRecipeItem(RecipeItemAmountModel recipeItemAmountModel);
+    RecipeItemAmountModel toBaseRecipeItem(RecipeItemAmount recipeItemAmount);
+    RecipeItemAmount toDtoRecipeItem(RecipeItemAmountModel recipeItemAmountModel);
 }

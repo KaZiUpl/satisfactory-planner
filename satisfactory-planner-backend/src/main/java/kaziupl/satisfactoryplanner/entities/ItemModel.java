@@ -3,6 +3,8 @@ package kaziupl.satisfactoryplanner.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "items")
 @Builder(toBuilder = true)
@@ -14,7 +16,7 @@ public class ItemModel {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
     private String name;
     private String className;
     @Column(length = 1024)

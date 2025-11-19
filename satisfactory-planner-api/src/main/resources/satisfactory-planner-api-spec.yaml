@@ -1,8 +1,10 @@
+# This OpenAPI specification was generated on November 14, 2025.
+# It was created by Gemini 2.5 Pro, a large language model trained by Google.
 openapi: 3.0.3
 info:
   title: Factory Planner API
   description: API for managing production plans for the game Satisfactory.
-  version: 1.2.0
+  version: 1.9.3
 servers:
   - url: https://api.factoryplanner.example.com/v1
     description: Production Server
@@ -52,6 +54,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ItemPage'
+
+  /items/{itemId}:
+    get:
+      tags: [Game Data]
+      summary: Get a single item by ID
+      description: Retrieves a specific item by its unique ID.
+      operationId: getItemById
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: The ID of the item to retrieve.
+          schema:
+            type: string
+            format: uuid
+            example: '123e4567-e89b-12d3-a456-426614174001'
+      responses:
+        '200':
+          description: Item details found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /recipes:
     get:
       tags: [Game Data]
@@ -90,6 +118,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RecipePage'
+
+  /recipes/{recipeId}:
+    get:
+      tags: [Game Data]
+      summary: Get a single recipe by ID
+      description: Retrieves a specific recipe by its unique ID.
+      operationId: getRecipeById
+      parameters:
+        - name: recipeId
+          in: path
+          required: true
+          description: The ID of the recipe to retrieve.
+          schema:
+            type: string
+            format: uuid
+            example: '123e4567-e89b-12d3-a456-426614174002'
+      responses:
+        '200':
+          description: Recipe details found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /buildings:
     get:
       tags: [Game Data]
@@ -129,6 +183,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/BuildingPage'
 
+  /buildings/{buildingId}:
+    get:
+      tags: [Game Data]
+      summary: Get a single building by ID
+      description: Retrieves a specific building by its unique ID.
+      operationId: getBuildingById
+      parameters:
+        - name: buildingId
+          in: path
+          required: true
+          description: The ID of the building to retrieve.
+          schema:
+            type: string
+            format: uuid
+            example: '123e4567-e89b-12d3-a456-426614174003'
+      responses:
+        '200':
+          description: Building details found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Building'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /factories:
     get:
       tags: [Factory Management]
@@ -160,6 +239,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Factory' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
   /factories/{factoryId}:
     parameters:
@@ -180,7 +261,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Factory' }
         '404':
-          description: Factory not found.
+          $ref: '#/components/responses/NotFound'
     put:
       tags: [Factory Management]
       summary: Update a factory (save plan)
@@ -201,8 +282,10 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Factory' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
-          description: Factory not found.
+          $ref: '#/components/responses/NotFound'
     delete:
       tags: [Factory Management]
       summary: Delete a factory
@@ -212,7 +295,7 @@ paths:
         '204':
           description: Factory deleted successfully (no content).
         '404':
-          description: Factory not found.
+          $ref: '#/components/responses/NotFound'
 
   /factories/{factoryId}/summary:
     parameters:
@@ -237,7 +320,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FactorySummary'
         '404':
-          description: Factory not found.
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
@@ -249,11 +332,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Item'
-        totalPages:
+        total_pages:
           type: integer
           description: Total number of pages.
           example: 10
-        totalElements:
+        total_elements:
           type: integer
           format: int64
           description: Total number of elements across all pages.
@@ -266,7 +349,7 @@ components:
           type: integer
           description: The current page number (0-indexed).
           example: 0
-        numberOfElements:
+        number_of_elements:
           type: integer
           description: The number of elements in the current page.
           example: 10
@@ -279,7 +362,7 @@ components:
         empty:
           type: boolean
           description: True if the current page has no elements.
-      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+      required: [content, total_pages, total_elements, size, number, number_of_elements, last, first, empty]
 
     RecipePage:
       type: object
@@ -289,11 +372,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Recipe'
-        totalPages:
+        total_pages:
           type: integer
           description: Total number of pages.
           example: 10
-        totalElements:
+        total_elements:
           type: integer
           format: int64
           description: Total number of elements across all pages.
@@ -306,7 +389,7 @@ components:
           type: integer
           description: The current page number (0-indexed).
           example: 0
-        numberOfElements:
+        number_of_elements:
           type: integer
           description: The number of elements in the current page.
           example: 10
@@ -319,7 +402,7 @@ components:
         empty:
           type: boolean
           description: True if the current page has no elements.
-      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+      required: [content, total_pages, total_elements, size, number, number_of_elements, last, first, empty]
 
     BuildingPage:
       type: object
@@ -329,11 +412,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Building'
-        totalPages:
+        total_pages:
           type: integer
           description: Total number of pages.
           example: 10
-        totalElements:
+        total_elements:
           type: integer
           format: int64
           description: Total number of elements across all pages.
@@ -346,7 +429,7 @@ components:
           type: integer
           description: The current page number (0-indexed).
           example: 0
-        numberOfElements:
+        number_of_elements:
           type: integer
           description: The number of elements in the current page.
           example: 10
@@ -359,7 +442,7 @@ components:
         empty:
           type: boolean
           description: True if the current page has no elements.
-      required: [content, totalPages, totalElements, size, number, numberOfElements, last, first, empty]
+      required: [content, total_pages, total_elements, size, number, number_of_elements, last, first, empty]
 
     NetItemRate:
       type: object
@@ -367,11 +450,12 @@ components:
         Represents the calculated net rate (production - consumption)
         for a single item, in items per minute.
       properties:
-        itemId:
+        item_id:
           type: string
+          format: uuid
           description: The ID of the item (from /items).
-          example: Desc_IronPlate_C
-        netRate:
+          example: '123e4567-e89b-12d3-a456-426614174001'
+        net_rate:
           type: number
           format: float
           description: >
@@ -380,7 +464,7 @@ components:
             A negative number means a deficit/input required (e.g., -5.0).
             Zero means production = consumption.
           example: 10.0
-      required: [itemId, netRate]
+      required: [item_id, net_rate]
 
     ProductionSummary:
       type: object
@@ -388,14 +472,14 @@ components:
         Represents a summary object for a given scope
         (an entire factory or a single outpost).
       properties:
-        netItemRates:
+        net_item_rates:
           type: array
           description: >
             A list of all items with a non-zero net rate in this scope.
             Items with netRate = 0 are omitted.
           items:
             $ref: '#/components/schemas/NetItemRate'
-        netPowerConsumption:
+        net_power_consumption:
           type: number
           format: float
           description: >
@@ -403,40 +487,40 @@ components:
             A positive number means consumption (deficit), e.g., 50.0.
             A negative number means power overproduction (surplus), e.g., -150.0.
           example: 50.0
-        totalMachineCount:
+        total_machine_count:
           type: number
           format: float
           description: The total (equivalent) number of machines in this scope.
           example: 12.5
-      required: [netItemRates, netPowerConsumption, totalMachineCount]
+      required: [net_item_rates, net_power_consumption, total_machine_count]
 
     FactorySummary:
       type: object
       description: A full analytical summary for an entire factory.
       properties:
-        factoryId:
+        factory_id:
           type: string
           format: uuid
-        factoryName:
+        factory_name:
           type: string
-        totalSummary:
+        total_summary:
           description: A summary for the entire factory.
           $ref: '#/components/schemas/ProductionSummary'
-        outpostSummaries:
+        outpost_summaries:
           description: A list of summaries for each outpost individually.
           type: array
           items:
             type: object
             properties:
-              outpostId:
+              outpost_id:
                 type: string
                 format: uuid
-              outpostName:
+              outpost_name:
                 type: string
               summary:
                 $ref: '#/components/schemas/ProductionSummary'
-            required: [outpostId, outpostName, summary]
-      required: [factoryId, factoryName, totalSummary, outpostSummaries]
+            required: [outpost_id, outpost_name, summary]
+      required: [factory_id, factory_name, total_summary, outpost_summaries]
 
     Factory:
       type: object
@@ -462,17 +546,17 @@ components:
           items:
             $ref: '#/components/schemas/Outpost'
           default: []
-        createdAt:
+        created_at:
           type: string
           format: date-time
           description: The timestamp when the plan was created (server-set).
           readOnly: true
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
           description: The timestamp of the last modification (server-set).
           readOnly: true
-      required: [id, name, outposts, createdAt, updatedAt]
+      required: [id, name, outposts, created_at, updated_at]
 
     Outpost:
       type: object
@@ -506,27 +590,29 @@ components:
           type: string
           format: uuid
           description: Unique identifier for the node (server-set or client-provided for updates).
-        recipeId:
+        recipe_id:
           type: string
+          format: uuid
           description: The ID of the recipe (from /recipes) being used.
-          example: Recipe_IronPlate_C
-        buildingId:
+          example: '123e4567-e89b-12d3-a456-426614174002'
+        building_id:
           type: string
+          format: uuid
           description: The ID of the building (from /buildings) running the recipe.
-          example: Desc_Constructor_C
-        machineCount:
+          example: '123e4567-e89b-12d3-a456-426614174003'
+        machine_count:
           type: number
           format: float
           description: >
             Number of machines. Can be fractional (e.g., 0.5 for a machine
             at 50% clock speed, if clockSpeed = 1.0).
           example: 4.0
-        clockSpeed:
+        clock_speed:
           type: number
           format: float
           description: The clock speed for this group of machines (1.0 = 100%, 2.5 = 250%).
           default: 1.0
-      required: [id, recipeId, buildingId, machineCount]
+      required: [id, recipe_id, building_id, machine_count]
 
     FactoryInput:
       type: object
@@ -557,29 +643,30 @@ components:
       properties:
         id:
           type: string
-          example: Desc_IronPlate_C
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174001'
         name:
           type: string
           example: Iron Plate
         description:
           type: string
           example: "Iron Plates are a basic component used in many recipes."
-        stackSize:
+        stack_size:
           type: integer
           example: 100
-        sinkPoints:
+        sink_value:
           type: integer
           example: 2
-        energyValue:
+        energy_value:
           type: number
           format: float
           description: Energy value in Megajoules (MJ) when used as fuel. Null if not a fuel.
           example: 300
           nullable: true
-        radioactiveDecay:
-          type: float
-          example: 20
-      required: [id, name, stackSize, sinkValue]
+        radioactive:
+          type: boolean
+          example: false
+      required: [id, name, stack_size, sink_value]
 
     RecipeItemAmount:
       type: object
@@ -587,15 +674,16 @@ components:
         A helper schema linking an Item ID to a specific quantity
         used in a single craft cycle of a recipe.
       properties:
-        itemId:
+        item_id:
           type: string
+          format: uuid
           description: The ID of the item being consumed or produced.
-          example: Desc_IronOre_C
+          example: '123e4567-e89b-12d3-a456-426614174001'
         amount:
           type: integer
           description: The number of items for one craft cycle.
           example: 3
-      required: [itemId, amount]
+      required: [item_id, amount]
 
     ItemRate:
       type: object
@@ -603,16 +691,17 @@ components:
         A helper schema linking an Item ID to a specific rate (per minute).
         Used primarily for generator fuel consumption.
       properties:
-        itemId:
+        item_id:
           type: string
+          format: uuid
           description: The ID of the item being consumed.
-          example: Desc_Coal_C
+          example: '123e4567-e89b-12d3-a456-426614174004'
         rate:
           type: number
           format: float
           description: The number of items consumed per minute.
           example: 15.0
-      required: [itemId, rate]
+      required: [item_id, rate]
 
     Recipe:
       type: object
@@ -623,36 +712,38 @@ components:
       properties:
         id:
           type: string
-          example: Recipe_IronPlate_C
+          format: uuid
+          example: '123e4567-e89b-12d3-a456-426614174002'
         name:
           type: string
           example: Iron Plate
-        craftTime:
+        craft_time:
           type: number
           format: float
           description: The time in seconds to complete one craft cycle at 100% clock speed.
           example: 4.0
         ingredients:
           type: array
-          description: A list of items and amounts required to start one craft cycle.
+          description: A list of items and amounts required to start one craft cycle (ingredients).
           items:
             $ref: '#/components/schemas/RecipeItemAmount'
         product:
           type: array
-          description: A list of items and amounts produced in one craft cycle.
+          description: A list of items and amounts produced in one craft cycle (product).
           items:
             $ref: '#/components/schemas/RecipeItemAmount'
-        producedIn:
+        produced_in:
           type: array
-          description: List of building IDs (ClassNames) that can craft this recipe.
+          description: List of building IDs (UUIDs) that can craft this recipe.
           items:
             type: string
-          example: ["Desc_Constructor_C"]
-        isAlternate:
+            format: uuid
+          example: ["123e4567-e89b-12d3-a456-426614174003"]
+        is_alternate:
           type: boolean
           description: True if this is an alternate recipe unlocked via Hard Drives.
           default: false
-      required: [id, name, craftTime, ingredients, product, producedIn]
+      required: [id, name, craft_time, ingredients, product, produced_in]
 
     Building:
       type: object
@@ -660,8 +751,9 @@ components:
       properties:
         id:
           type: string
-          description: Unique machine-readable identifier (ClassName).
-          example: Desc_Constructor_C
+          format: uuid
+          description: Unique machine-readable identifier.
+          example: '123e4567-e89b-12d3-a456-426614174003'
         name:
           type: string
           description: Human-readable display name.
@@ -674,7 +766,7 @@ components:
           description: Helps organize buildings in the UI.
           example: "Production"
           enum: [Production, Mining, Power, Logistics, Other]
-        powerConsumption:
+        power_consumption:
           type: number
           format: float
           description: >
@@ -682,14 +774,14 @@ components:
             Null for generators that only produce power.
           example: 4
           nullable: true
-        powerConsumptionExponent:
+        power_consumption_exponent:
           type: number
           format: float
           description: >
             The exponent used for calculating power with clock speed changes.
             Formula: ActualPower = BasePower * (ClockSpeed ^ Exponent)
           example: 1.6
-        powerProduction:
+        power_production:
           type: number
           format: float
           description: >
@@ -697,15 +789,15 @@ components:
             Null for buildings that only consume power.
           example: 75
           nullable: true
-        canSetClockSpeed:
+        can_set_clock_speed:
           type: boolean
           description: True if this is the building supports overclocking/underclocking.
           default: true
-        canSetRecipe:
+        can_set_recipe:
           type: boolean
           description: True if a recipe must be selected for this building to function.
           example: true
-        fuelInputs:
+        fuel_inputs:
           type: array
           description: >
             A list of items and their consumption rates (per minute)
@@ -714,3 +806,82 @@ components:
             $ref: '#/components/schemas/ItemRate'
           nullable: true
       required: [id, name, category]
+
+    ValidationError:
+      type: object
+      description: Describes a single validation error for a specific field.
+      properties:
+        field:
+          type: string
+          description: The name of the field that failed validation.
+          example: name
+        message:
+          type: string
+          description: The reason for the validation failure.
+          example: Factory name cannot be empty.
+      required: [field, message]
+
+    ErrorResponse:
+      type: object
+      description: A standardized error response based on RFC 7807 Problem Details.
+      properties:
+        type:
+          type: string
+          format: uri
+          description: A URI identifier for this type of problem.
+          default: "about:blank"
+          example: /errors/not-found
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+          example: Resource Not Found
+        status:
+          type: integer
+          description: The HTTP status code.
+          example: 404
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+          example: Factory with ID 123e4567-e89b-12d3-a456-426614174000 not found.
+        instance:
+          type: string
+          format: uri-reference
+          description: A URI reference that identifies the specific occurrence of the problem.
+          example: /v1/factories/123e4567-e89b-12d3-a456-426614174000
+        validation_errors:
+          type: array
+          description: A list of specific field validation errors (extension member).
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          nullable: true
+      required: [type, title, status, detail, instance]
+
+  responses:
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "/errors/not-found"
+            title: "Resource Not Found"
+            status: 404
+            detail: "Resource not found."
+            instance: "/v1/items/123e4567-e89b-12d3-a456-426614174001"
+
+    BadRequest:
+      description: The request was malformed or failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "/errors/validation-failed"
+            title: "Bad Request"
+            status: 400
+            detail: "Validation failed."
+            instance: "/v1/factories"
+            validation_errors: [
+              { "field": "name", "message": "Factory name cannot be empty." }
+            ]
